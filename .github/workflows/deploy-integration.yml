@@ -24,6 +24,10 @@ jobs:
             fi
             cd "$HOME/microservices"
             git pull --ff-only
+            cat > "$HOME/microservices/microservices/integration-service/.env" <<'EOF'
+            APP_ADDR=0.0.0.0:8085
+            EXTERNAL_BASE_URL=${{ secrets.EXTERNAL_BASE_URL }}
+            EOF
             sudo cp "$HOME/microservices/microservices/deploy/systemd/integration-service.service" /etc/systemd/system/integration-service.service
             sudo systemctl daemon-reload
             sudo systemctl restart integration-service

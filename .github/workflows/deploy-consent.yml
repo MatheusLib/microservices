@@ -24,6 +24,14 @@ jobs:
             fi
             cd "$HOME/microservices"
             git pull --ff-only
+            cat > "$HOME/microservices/microservices/consent-service/.env" <<'EOF'
+            APP_ADDR=0.0.0.0:8081
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASS=${{ secrets.DB_PASS }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            EOF
             sudo cp "$HOME/microservices/microservices/deploy/systemd/consent-service.service" /etc/systemd/system/consent-service.service
             sudo systemctl daemon-reload
             sudo systemctl restart consent-service

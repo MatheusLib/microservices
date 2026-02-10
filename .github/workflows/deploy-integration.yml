@@ -6,6 +6,7 @@ on:
     paths:
       - "microservices/integration-service/**"
       - "microservices/deploy/systemd/integration-service.service"
+  workflow_dispatch:
 
 jobs:
   deploy_integration:

@@ -6,6 +6,7 @@ on:
     paths:
       - "microservices/policy-service/**"
       - "microservices/deploy/systemd/policy-service.service"
+  workflow_dispatch:
 
 jobs:
   deploy_policy:

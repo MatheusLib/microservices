@@ -6,6 +6,7 @@ on:
     paths:
       - "microservices/consent-service/**"
       - "microservices/deploy/systemd/consent-service.service"
+  workflow_dispatch:
 
 jobs:
   deploy_consent:

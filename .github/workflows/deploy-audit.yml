@@ -6,6 +6,7 @@ on:
     paths:
       - "microservices/audit-service/**"
       - "microservices/deploy/systemd/audit-service.service"
+  workflow_dispatch:
 
 jobs:
   deploy_audit:

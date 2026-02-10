@@ -6,6 +6,7 @@ on:
     paths:
       - "microservices/report-service/**"
       - "microservices/deploy/systemd/report-service.service"
+  workflow_dispatch:
 
 jobs:
   deploy_report:

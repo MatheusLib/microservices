@@ -1,0 +1,29 @@
+name: deploy-integration-service
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "microservices/integration-service/**"
+      - "microservices/deploy/systemd/integration-service.service"
+
+jobs:
+  deploy_integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy integration-service to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            if [ ! -d "$HOME/microservices/.git" ]; then
+              git clone https://github.com/${{ github.repository }} "$HOME/microservices"
+            fi
+            cd "$HOME/microservices"
+            git pull --ff-only
+            sudo cp "$HOME/microservices/microservices/deploy/systemd/integration-service.service" /etc/systemd/system/integration-service.service
+            sudo systemctl daemon-reload
+            sudo systemctl restart integration-service

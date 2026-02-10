@@ -1,0 +1,29 @@
+name: deploy-policy-service
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "microservices/policy-service/**"
+      - "microservices/deploy/systemd/policy-service.service"
+
+jobs:
+  deploy_policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy policy-service to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            if [ ! -d "$HOME/microservices/.git" ]; then
+              git clone https://github.com/${{ github.repository }} "$HOME/microservices"
+            fi
+            cd "$HOME/microservices"
+            git pull --ff-only
+            sudo cp "$HOME/microservices/microservices/deploy/systemd/policy-service.service" /etc/systemd/system/policy-service.service
+            sudo systemctl daemon-reload
+            sudo systemctl restart policy-service

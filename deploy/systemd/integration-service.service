@@ -1,0 +1,15 @@
+[Unit]
+Description=integration-service API
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/microservices/integration-service
+EnvironmentFile=/home/ec2-user/microservices/integration-service/.env
+ExecStart=/usr/bin/go run ./cmd/api
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

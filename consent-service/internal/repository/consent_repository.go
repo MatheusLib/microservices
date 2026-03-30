@@ -73,8 +73,8 @@ func (r *mysqlConsentRepository) Create(ctx context.Context, c Consent) (uint64,
 
 func (r *mysqlConsentRepository) Revoke(ctx context.Context, documentID string) error {
 	_, err := r.db.ExecContext(ctx, `
-		UPDATE consents SET status = 'revoked'
-		WHERE document_id = ?
+		UPDATE consents SET status = 'revoked', revoked_at = NOW()
+		WHERE id = ?
 	`, documentID)
 	return err
 }

@@ -3,6 +3,8 @@ package app
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"integration-service/internal/external_services"
 	"integration-service/internal/handler"
 )
@@ -12,8 +14,8 @@ func NewRouter(baseURL string) http.Handler {
 	svc := external_services.NewService(client)
 	h := handler.NewIntegrationHandler(svc)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", handler.Health)
-	mux.HandleFunc("/integrations/ping", h.Ping)
-	return mux
+	r := chi.NewRouter()
+	r.Get("/health", handler.Health)
+	r.Get("/integrations/ping", h.Ping)
+	return r
 }

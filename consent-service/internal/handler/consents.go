@@ -7,6 +7,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+
+	"consent-service/internal/repository"
 	"consent-service/internal/service"
 )
 
@@ -16,6 +19,12 @@ type Consent struct {
 	PolicyID uint64 `json:"policy_id"`
 	Purpose  string `json:"purpose"`
 	Status   string `json:"status"`
+}
+
+type createConsentRequest struct {
+	UserID   uint64 `json:"user_id"`
+	PolicyID uint64 `json:"policy_id"`
+	Purpose  string `json:"purpose"`
 }
 
 type ConsentHandler struct {
@@ -59,4 +68,52 @@ func (h ConsentHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(resp)
+}
+
+func (h ConsentHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	var req createConsentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	if req.UserID == 0 || req.PolicyID == 0 || req.Purpose == "" {
+		http.Error(w, "missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.Service.CreateConsent(ctx, repository.Consent{
+		UserID:   req.UserID,
+		PolicyID: req.PolicyID,
+		Purpose:  req.Purpose,
+	})
+	if err != nil {
+		http.Error(w, "create error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(map[string]uint64{"id": id})
+}
+
+func (h ConsentHandler) Revoke(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	documentID := chi.URLParam(r, "document_id")
+	if documentID == "" {
+		http.Error(w, "missing document_id", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Service.RevokeConsent(ctx, documentID); err != nil {
+		http.Error(w, "revoke error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

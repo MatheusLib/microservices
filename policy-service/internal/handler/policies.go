@@ -7,11 +7,17 @@ import (
 	"strconv"
 	"time"
 
+	"policy-service/internal/repository"
 	"policy-service/internal/service"
 )
 
 type Policy struct {
 	ID          uint64 `json:"id"`
+	Version     string `json:"version"`
+	ContentHash string `json:"content_hash"`
+}
+
+type createPolicyRequest struct {
 	Version     string `json:"version"`
 	ContentHash string `json:"content_hash"`
 }
@@ -55,4 +61,33 @@ func (h PolicyHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(resp)
+}
+
+func (h PolicyHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	var req createPolicyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Version == "" || req.ContentHash == "" {
+		http.Error(w, "missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.Service.CreatePolicy(ctx, repository.Policy{
+		Version:     req.Version,
+		ContentHash: req.ContentHash,
+	})
+	if err != nil {
+		http.Error(w, "create error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(map[string]uint64{"id": id})
 }

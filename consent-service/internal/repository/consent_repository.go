@@ -15,6 +15,8 @@ type Consent struct {
 
 type ConsentRepository interface {
 	List(ctx context.Context, limit int) ([]Consent, error)
+	Create(ctx context.Context, c Consent) (uint64, error)
+	Revoke(ctx context.Context, documentID string) error
 }
 
 type mysqlConsentRepository struct {
@@ -50,4 +52,29 @@ func (r *mysqlConsentRepository) List(ctx context.Context, limit int) ([]Consent
 	}
 
 	return consents, nil
+}
+
+func (r *mysqlConsentRepository) Create(ctx context.Context, c Consent) (uint64, error) {
+	result, err := r.db.ExecContext(ctx, `
+		INSERT INTO consents (user_id, policy_id, purpose, status)
+		VALUES (?, ?, ?, ?)
+	`, c.UserID, c.PolicyID, c.Purpose, c.Status)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(id), nil
+}
+
+func (r *mysqlConsentRepository) Revoke(ctx context.Context, documentID string) error {
+	_, err := r.db.ExecContext(ctx, `
+		UPDATE consents SET status = 'revoked'
+		WHERE document_id = ?
+	`, documentID)
+	return err
 }

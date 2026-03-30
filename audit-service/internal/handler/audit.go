@@ -7,11 +7,19 @@ import (
 	"strconv"
 	"time"
 
+	"audit-service/internal/repository"
 	"audit-service/internal/service"
 )
 
 type AuditEvent struct {
 	ID         uint64 `json:"id"`
+	EventType  string `json:"event_type"`
+	EntityType string `json:"entity_type"`
+	EntityID   uint64 `json:"entity_id"`
+	Payload    string `json:"payload_json"`
+}
+
+type recordRequest struct {
 	EventType  string `json:"event_type"`
 	EntityType string `json:"entity_type"`
 	EntityID   uint64 `json:"entity_id"`
@@ -59,4 +67,35 @@ func (h AuditHandler) List(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(resp)
+}
+
+func (h AuditHandler) Record(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	var req recordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	if req.EventType == "" || req.EntityType == "" {
+		http.Error(w, "missing required fields", http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.Service.RecordEvent(ctx, repository.AuditEvent{
+		EventType:  req.EventType,
+		EntityType: req.EntityType,
+		EntityID:   req.EntityID,
+		Payload:    req.Payload,
+	})
+	if err != nil {
+		http.Error(w, "record error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(map[string]uint64{"id": id})
 }

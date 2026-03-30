@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"audit-service/internal/handler"
 	"audit-service/internal/repository"
 	"audit-service/internal/service"
@@ -14,8 +16,9 @@ func NewRouter(db *sql.DB) http.Handler {
 	svc := service.NewAuditService(repo)
 	h := handler.NewAuditHandler(svc)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", handler.Health)
-	mux.HandleFunc("/audit/events", h.List)
-	return mux
+	r := chi.NewRouter()
+	r.Get("/health", handler.Health)
+	r.Get("/audit/events", h.List)
+	r.Post("/audit-events", h.Record)
+	return r
 }

@@ -15,6 +15,7 @@ type AuditEvent struct {
 
 type AuditRepository interface {
 	List(ctx context.Context, limit int) ([]AuditEvent, error)
+	Record(ctx context.Context, e AuditEvent) (uint64, error)
 }
 
 type mysqlAuditRepository struct {
@@ -50,4 +51,21 @@ func (r *mysqlAuditRepository) List(ctx context.Context, limit int) ([]AuditEven
 	}
 
 	return events, nil
+}
+
+func (r *mysqlAuditRepository) Record(ctx context.Context, e AuditEvent) (uint64, error) {
+	result, err := r.db.ExecContext(ctx, `
+		INSERT INTO audit_events (event_type, entity_type, entity_id, payload_json)
+		VALUES (?, ?, ?, ?)
+	`, e.EventType, e.EntityType, e.EntityID, e.Payload)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(id), nil
 }

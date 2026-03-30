@@ -1,0 +1,38 @@
+name: deploy-lineage-service
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "microservices/lineage-service/**"
+      - "microservices/deploy/systemd/lineage-service.service"
+  workflow_dispatch:
+
+jobs:
+  deploy_lineage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy lineage-service to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            if [ ! -d "$HOME/microservices/.git" ]; then
+              git clone https://github.com/${{ github.repository }} "$HOME/microservices"
+            fi
+            cd "$HOME/microservices"
+            git pull --ff-only
+            cat > "$HOME/microservices/lineage-service/.env" <<'EOF'
+            APP_ADDR=0.0.0.0:8086
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASS=${{ secrets.DB_PASS }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            EOF
+            sudo cp "$HOME/microservices/deploy/systemd/lineage-service.service" /etc/systemd/system/lineage-service.service
+            sudo systemctl daemon-reload
+            sudo systemctl restart lineage-service

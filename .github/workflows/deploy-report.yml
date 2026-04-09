@@ -33,6 +33,9 @@ jobs:
             DB_PASS=${{ secrets.DB_PASS }}
             DB_NAME=${{ secrets.DB_NAME }}
             EOF
+            cd "$HOME/microservices/report-service" && go build -o api ./cmd/api
+            cd "$HOME/microservices"
             sudo cp "$HOME/microservices/deploy/systemd/report-service.service" /etc/systemd/system/report-service.service
             sudo systemctl daemon-reload
+            sudo systemctl enable report-service
             sudo systemctl restart report-service

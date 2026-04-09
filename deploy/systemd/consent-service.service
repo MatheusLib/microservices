@@ -7,7 +7,7 @@ Type=simple
 User=ec2-user
 WorkingDirectory=/home/ec2-user/microservices/consent-service
 EnvironmentFile=/home/ec2-user/microservices/consent-service/.env
-ExecStart=/usr/bin/go run ./cmd/api
+ExecStart=/home/ec2-user/microservices/consent-service/api
 Restart=on-failure
 RestartSec=3
 

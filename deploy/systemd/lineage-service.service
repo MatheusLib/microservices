@@ -7,7 +7,7 @@ Type=simple
 User=ec2-user
 WorkingDirectory=/home/ec2-user/microservices/lineage-service
 EnvironmentFile=/home/ec2-user/microservices/lineage-service/.env
-ExecStart=/usr/bin/go run ./cmd/api
+ExecStart=/home/ec2-user/microservices/lineage-service/api
 Restart=on-failure
 RestartSec=3
 

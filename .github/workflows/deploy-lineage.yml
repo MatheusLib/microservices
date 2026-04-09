@@ -33,6 +33,9 @@ jobs:
             DB_PASS=${{ secrets.DB_PASS }}
             DB_NAME=${{ secrets.DB_NAME }}
             EOF
+            cd "$HOME/microservices/lineage-service" && go build -o api ./cmd/api
+            cd "$HOME/microservices"
             sudo cp "$HOME/microservices/deploy/systemd/lineage-service.service" /etc/systemd/system/lineage-service.service
             sudo systemctl daemon-reload
+            sudo systemctl enable lineage-service
             sudo systemctl restart lineage-service

@@ -33,6 +33,9 @@ jobs:
             DB_PASS=${{ secrets.DB_PASS }}
             DB_NAME=${{ secrets.DB_NAME }}
             EOF
+            cd "$HOME/microservices/audit-service" && go build -o api ./cmd/api
+            cd "$HOME/microservices"
             sudo cp "$HOME/microservices/deploy/systemd/audit-service.service" /etc/systemd/system/audit-service.service
             sudo systemctl daemon-reload
+            sudo systemctl enable audit-service
             sudo systemctl restart audit-service

@@ -29,6 +29,9 @@ jobs:
             APP_ADDR=0.0.0.0:8085
             EXTERNAL_BASE_URL=${{ secrets.EXTERNAL_BASE_URL }}
             EOF
+            cd "$HOME/microservices/integration-service" && go build -o api ./cmd/api
+            cd "$HOME/microservices"
             sudo cp "$HOME/microservices/deploy/systemd/integration-service.service" /etc/systemd/system/integration-service.service
             sudo systemctl daemon-reload
+            sudo systemctl enable integration-service
             sudo systemctl restart integration-service

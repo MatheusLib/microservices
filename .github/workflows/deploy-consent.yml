@@ -33,6 +33,9 @@ jobs:
             DB_PASS=${{ secrets.DB_PASS }}
             DB_NAME=${{ secrets.DB_NAME }}
             EOF
+            cd "$HOME/microservices/consent-service" && go build -o api ./cmd/api
+            cd "$HOME/microservices"
             sudo cp "$HOME/microservices/deploy/systemd/consent-service.service" /etc/systemd/system/consent-service.service
             sudo systemctl daemon-reload
+            sudo systemctl enable consent-service
             sudo systemctl restart consent-service

@@ -33,6 +33,9 @@ jobs:
             DB_PASS=${{ secrets.DB_PASS }}
             DB_NAME=${{ secrets.DB_NAME }}
             EOF
+            cd "$HOME/microservices/policy-service" && go build -o api ./cmd/api
+            cd "$HOME/microservices"
             sudo cp "$HOME/microservices/deploy/systemd/policy-service.service" /etc/systemd/system/policy-service.service
             sudo systemctl daemon-reload
+            sudo systemctl enable policy-service
             sudo systemctl restart policy-service

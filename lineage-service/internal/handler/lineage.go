@@ -32,6 +32,7 @@ type recordRequest struct {
 	Destination string  `json:"destination"`
 	Purpose     string  `json:"purpose"`
 	ConsentID   *uint64 `json:"consent_id,omitempty"`
+	PayloadJSON string `json:"payload_json"`
 }
 
 type LineageHandler struct {
@@ -57,6 +58,11 @@ func (h LineageHandler) Record(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	payloadJSON := req.PayloadJSON
+	if payloadJSON == "" {
+		payloadJSON = "{}"
+	}
+
 	id, err := h.Service.Record(ctx, repository.LineageEvent{
 		SubjectID:   req.SubjectID,
 		Operation:   req.Operation,
@@ -64,6 +70,7 @@ func (h LineageHandler) Record(w http.ResponseWriter, r *http.Request) {
 		Destination: req.Destination,
 		Purpose:     req.Purpose,
 		ConsentID:   req.ConsentID,
+		PayloadJSON: payloadJSON,
 	})
 	if err != nil {
 		http.Error(w, "record error", http.StatusInternalServerError)
